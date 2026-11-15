@@ -22,11 +22,10 @@ Dijalanin dari crontab tiap **29 menit**:
 | `stopped` | Start |
 | cooldown | Diam, tunggu tick berikutnya |
 
-Plus satu blok opsional: **Redis Cloud keepalive** — database gratis Redis Cloud
-dihapus kalau 30 hari gak dapat tulisan. Blok ini login pakai akun khusus ke
-`/api/users/_login` lalu `PUT /api/location` tiap ~6 jam, supaya DB selalu dianggap aktif.
-Blok ini jalan di mesin lokal (bukan di dalam VM), jadi tetap nulis walau mesin InstaBox lagi pause.
-Hapus bloknya kalau gak butuh.
+Plus satu blok opsional yang bisa ditambah sendiri kalau perlu: **Redis Cloud
+keepalive** — database gratis Redis Cloud dihapus kalau 30 hari gak dapat
+tulisan, jadi perlu login + `PUT /api/location` tiap ~6 jam ke aplikasi kamu.
+Blok ini sengaja gak masuk repo (kalau mau, tambahkan sendiri di akhir script).
 
 ## Setup
 
@@ -34,19 +33,13 @@ Hapus bloknya kalau gak butuh.
    ```bash
    echo 'KEY_KAMU' > ~/.instabox_api_key && chmod 600 ~/.instabox_api_key
    ```
-2. (Opsional, kalau pakai blok Redis) simpan password akun keepalive:
-   ```bash
-   echo 'PASSWORD' > ~/.redis_keepalive_password && chmod 600 ~/.redis_keepalive_password
-   ```
-3. Edit script, isi `ID` dengan machine id kamu (formatnya `m_xxxxx`).
-   Kalau blok Redis dipakai, ganti juga `RPID` dan URL `api.allert.my.id`
-   sesuai aplikasi kamu sendiri.
-4. Pasang di crontab:
+2. Edit script, isi `ID` dengan machine id kamu (formatnya `m_xxxxx`).
+3. Pasang di crontab:
    ```bash
    chmod +x instabox-keepalive.sh
    crontab -l 2>/dev/null; echo '*/29 * * * * $HOME/instabox-keepalive.sh' | crontab -
    ```
-5. Cek log:
+4. Cek log:
    ```bash
    tail -f ~/.instabox_keepalive.log
    ```

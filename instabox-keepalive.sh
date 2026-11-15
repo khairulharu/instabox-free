@@ -9,8 +9,6 @@
 #
 # Secrets are read from files, never hardcoded:
 #   ~/.instabox_api_key          -> InstaBox API key (X-API-Key)
-#   ~/.redis_keepalive_password  -> password for the Redis Cloud keepalive
-#                                   login account (chmod 600)
 
 set -u
 KEY=$(cat "$HOME/.instabox_api_key")
@@ -84,34 +82,3 @@ print(m["state"], m.get("storage",{}).get("synced"))' 2>/dev/null)
     echo "$TS state=$state elapsed=$elapsed - no action" >> "$LOG"
     ;;
 esac
-
-# Redis Cloud keepalive (2026-11-14): a free Redis Cloud DB gets deleted
-# after 30 days without activity. Every ~6 h: log in with the dedicated
-# account -> PUT /api/location -> the DB gets a fresh write.
-# Runs on the LOCAL machine (not inside the VM), so it keeps writing even
-# when the InstaBox machine is paused. Requires your own app exposing
-# /api/users/_login and /api/location; skip this block if you do not need it.
-RL="$HOME/.redis_keepalive_last"
-RPASS="$HOME/.redis_keepalive_password"
-if [ -s "$RPASS" ] && { [ ! -f "$RL" ] || [ $(( $(date +%s) - $(stat -c %Y "$RL") )) -ge 21600 ]; }; then
-  RPID="redis-alive-01"               # dedicated keepalive login account
-  PASS=$(cat "$RPASS")
-  TOK=$(curl -s --max-time 20 -X POST https://api.allert.my.id/api/users/_login \
-    -H 'Content-Type: application/json' \
-    -d "{\"id\":\"$RPID\",\"password\":\"$PASS\"}" \
-    | python3 -c 'import sys,json; print(json.load(sys.stdin).get("data",{}).get("token",""))' 2>/dev/null)
-  if [ -n "$TOK" ]; then
-    LAT=$(python3 -c "import time; print(round(-6.209900 + (int(time.time())%1000)*1e-6, 6))")
-    code=$(curl -s --max-time 25 -o /dev/null -w '%{http_code}' -X PUT \
-      https://api.allert.my.id/api/location \
-      -H "Authorization: $TOK" -H 'Content-Type: application/json' \
-      -d "{\"latitude\": $LAT, \"longitude\": 106.846900}")
-    if [ "$code" = "200" ]; then
-      touch "$RL"; echo "$TS redis-keepalive ok" >> "$LOG"
-    else
-      echo "$TS redis-keepalive PUT failed (http $code)" >> "$LOG"
-    fi
-  else
-    echo "$TS redis-keepalive login FAILED" >> "$LOG"
-  fi
-fi
