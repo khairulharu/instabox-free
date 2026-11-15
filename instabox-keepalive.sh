@@ -14,7 +14,7 @@
 
 set -u
 KEY=$(cat "$HOME/.instabox_api_key")
-ID="REPLACE_WITH_MACHINE_ID"          # e.g. m_agq2gqran52hi7dmffxuxwsmmu
+ID="REPLACE_WITH_MACHINE_ID"          # e.g. m_xxxxxxxx
 API="https://api.instabox.sh/v1"
 LOG="$HOME/.instabox_keepalive.log"
 TS=$(date '+%F %T')
