@@ -27,6 +27,17 @@ keepalive** — database gratis Redis Cloud dihapus kalau 30 hari gak dapat
 tulisan, jadi perlu login + `PUT /api/location` tiap ~6 jam ke aplikasi kamu.
 Blok ini sengaja gak masuk repo (kalau mau, tambahkan sendiri di akhir script).
 
+## FAQ
+
+**Kok harus dipasang di luar? Gak bisa langsung di cron-nya VM InstaBox?**
+
+Gak bisa. Idle pause InstaBox itu menidurkan SELURUH VM — proses, cron, semuanya
+ikut tidur, dan `crond` di dalem VM gak bisa jalan saat VM tidur. Jadi alarm-nya
+harus dipasang di mesin yang hidup terus dan di LUAR InstaBox: PC/laptop lokal,
+VPS lain, atau GitHub Actions (cron gratis, granularitas 5 menit). VM-nya emang
+keliatan "gak pernah idle" — tapi itu justru efeknya karena di-ping dari luar tiap
+29 menit, bukan karena dia mandiri.
+
 ## Setup
 
 1. Simpan API key InstaBox ke file:
